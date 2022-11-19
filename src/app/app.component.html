@@ -1,0 +1,299 @@
+<div>
+  <nav class="navbar navbar-expand-lg bg-light">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">Flight Schedule</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+          <li class="nav-item">
+            <a class="nav-link" (click)="showModal(null, 'add')">Add Flight</a>
+          </li>
+        </ul>
+        <form class="d-flex" role="search">
+          <input #key="ngModel" (ngModelChange)="searchFlights(key.value)" name="key" ngModel class="form-control me-2"
+            type="search" placeholder="Search" aria-label="Search">
+          <button class="btn btn-outline-success" type="submit">Search</button>
+        </form>
+      </div>
+    </div>
+  </nav>
+  <div class="container">
+    <div class="row">
+      <div *ngFor="let flight of flights" class="col-md-6 col-xl-3">
+        <div class="card mt-4">
+          <div class="card-body">
+            <div class="card-title align-self-center pb-2">
+              <h5>
+                <span *ngIf="!flight.returnFlight">Outbound</span>
+                <span *ngIf="flight.returnFlight">Return</span>
+                ({{removeSpace(flight.callsign)}})
+              </h5>
+            </div>
+            <div class="row">
+              <div class="col-3">
+                <i class="fa-solid fa-plane-departure fa-2xl"></i>
+              </div>
+              <div class="col-6 d-flex flex-column">
+                <i class="fa-solid fa-plane"></i>
+                <hr class="m-1">
+                <span class="align-self-center smaller text-secondary">{{getTravelTime(flight.timeOfDeparture,
+                  flight.timeOfArrival)}}</span>
+              </div>
+              <div class="col-3 text-end">
+                <i class="fa-solid fa-plane-arrival fa-2xl"></i>
+              </div>
+            </div>
+            <div class="row pb-2">
+              <div class="col-6">
+                <p class="text-start m-0 small fw-bold">{{flight.departureAirport}}</p>
+              </div>
+              <div class="col-6">
+                <p class="text-end m-0 small fw-bold">{{flight.arrivalAirport}}</p>
+              </div>
+            </div>
+            <div class="row pb-2">
+              <div class="col-6">
+                <p class="text-start m-0 small text-success">{{getAirportInfoByIcao(flight.departureAirport)["city"] +
+                  ", " +
+                  getAirportInfoByIcao(flight.departureAirport)["country"]}}</p>
+              </div>
+              <div class="col-6">
+                <p class="text-end m-0 small text-success">{{getAirportInfoByIcao(flight.arrivalAirport)["city"] + ", "
+                  +
+                  getAirportInfoByIcao(flight.arrivalAirport)["country"]}}</p>
+              </div>
+            </div>
+            <div class="row pb-2">
+              <div class="col-6">
+                <p class="text-start m-0 small">{{formatDate(flight.timeOfDeparture)}}</p>
+                <p class="text-start m-0 small">{{formatTime(flight.timeOfDeparture)}}</p>
+              </div>
+              <div class="col-6">
+                <p class="text-end m-0 small">{{formatDate(flight.timeOfArrival)}}</p>
+                <p class="text-end m-0 small">{{formatTime(flight.timeOfArrival)}}</p>
+              </div>
+            </div>
+            <div class="float-right btn-group btn-group-sm">
+            <button type="button" class="btn btn-primary me-2" title="Edit" (click)="showModal(flight, 'edit')">
+              <i class="fa fa-pencil"></i>
+            </button>
+            <button type="button" class="btn btn-secondary" title="Delete" (click)="showModal(flight, 'delete')">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Add flight modal -->
+      <div class="modal fade" id="addFlightModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">Add Flight</h5>
+              <button (click)="reset(addForm)" type="button" class="btn-close" data-bs-dismiss="modal"
+                aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <form class="p-3" #addForm="ngForm" (ngSubmit)="onAddFlight(addForm)">
+                <div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="travelType" [(ngModel)]="travelType"
+                      value="roundtrip" id="roundtrip" (click)="onTravelTypeChange($event)" checked>
+                    <label class="form-check-label" for="roundtrip">
+                      Roundtrip
+                    </label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="travelType" [(ngModel)]="travelType"
+                      value="oneWay" id="oneWay" (click)="onTravelTypeChange($event)">
+                    <label class="form-check-label" for="oneWay">
+                      One way
+                    </label>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <div class="form-check form-check-inline eva">
+                    <input class="form-check-input" type="radio" name="airline" [(ngModel)]="airline" value="evaAir"
+                      id="evaAir" (click)="onAirlineChange('RCTP', $event, 'add')" checked>
+                    <label class="form-check-label evaAir" for="evaAir">
+                      <img src="../assets/images/eva_air.png" alt="Eva Air">
+                    </label>
+                  </div>
+                  <div class="form-check form-check-inline star">
+                    <input class="form-check-input" type="radio" name="airline" [(ngModel)]="airline"
+                      value="starAlliance" id="starAlliance" (click)="onAirlineChange('RCTP', $event, 'add')">
+                    <label class="form-check-label" for="starAlliance">
+                      <img src="../assets/images/star_alliance.png" alt="Star Alliance">
+                    </label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="airline" [(ngModel)]="airline" value="all"
+                      id="all" (click)="onAirlineChange('RCTP', $event, 'add')">
+                    <label class="form-check-label" for="all">
+                      All airlines
+                    </label>
+                  </div>
+                </div>
+                <!-- addForm will be the reference of the whole form -->
+                <div class="row">
+                  <div class="col-md-6">
+                    <label for="departureDate" class="form-label">Depart</label><br>
+                    <mat-form-field class="example-full-width" appearance="fill">
+                      <mat-label>Choose a date</mat-label>
+                      <input id="departureDate" matInput [matDatepicker]="picker" [min]="minDate" [max]="maxDate"
+                        [(ngModel)]="departureDate" name="departureDate" (dateChange)="getDepartureFlights('RCTP','add')"
+                        required>
+                      <mat-hint>MM/DD/YYYY</mat-hint>
+                      <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                      <mat-datepicker #picker></mat-datepicker>
+                    </mat-form-field>
+                    <mat-form-field appearance="fill">
+                      <mat-label *ngIf="!hasNoDepFlight">Choose a flight</mat-label>
+                      <mat-label *ngIf="hasNoDepFlight">No flights available</mat-label>
+                      <mat-select class="depart" [(ngModel)]="departIndex" name="depart"
+                        (selectionChange)="getReturnFlights()" [disabled]="hasNoDepFlight" required>
+                        <mat-option *ngFor="let flightRaw of departureFlightsRaw; let i = index" [value]=i>
+                          {{formatCallsign(flightRaw["callsign"])}}</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+                  </div>
+                  <!-- Return flight -->
+                  <div class="col-md-6">
+                    <label for="returnDate" class="form-label returnLabel">Return</label><br>
+                    <mat-form-field class="example-full-width" appearance="fill">
+                      <mat-label>Choose a date</mat-label>
+                      <input id="returnDate" class="returnDate" matInput [matDatepicker]="rPicker" [min]="departureDate"
+                        [max]="maxDate" [(ngModel)]="returnDate" name="returnDate" (dateChange)="getReturnFlights()"
+                        [disabled]="returnDisabled || isOneWay" required>
+                      <mat-hint>MM/DD/YYYY</mat-hint>
+                      <mat-datepicker-toggle matSuffix [for]="rPicker"></mat-datepicker-toggle>
+                      <mat-datepicker #rPicker></mat-datepicker>
+                    </mat-form-field>
+                    <mat-form-field appearance="fill">
+                      <mat-label *ngIf="!hasNoRetFlight">Choose a flight</mat-label>
+                      <mat-label *ngIf="hasNoRetFlight">No flights available</mat-label>
+                      <mat-select class="return" name="return" [(ngModel)]="returnIndex"
+                        (selectionChange)="enableSubmission()" [disabled]="returnDisabled || isOneWay || hasNoRetFlight"
+                        required>
+                        <mat-option *ngFor="let flightRaw of returnFlightsRaw;  let i = index" [value]=i>
+                          {{formatCallsign(flightRaw["callsign"])}}</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button (click)="reset(addForm)" type="button" class="btn btn-secondary addClose"
+                    data-bs-dismiss="modal">Close</button>
+                  <button [disabled]="addForm.invalid || submissionDisabled" type="submit"
+                    class="btn btn-primary">Complete</button>
+                </div>
+                <!-- For troubleshooting purpose -->
+                <!-- travelType: {{travelType}} <br>
+                departIndex: {{departIndex}} <br>
+                returnIndex: {{returnIndex}} <br>
+                airline: {{airline}} <br>
+                returnDisabled: {{returnDisabled}} <br>
+                addForm: {{addForm.valid}} <br>
+                isOneWay: {{isOneWay}} <br>
+                submissionDisabled: {{submissionDisabled}} <br>
+                hasNoRetFlight: {{hasNoRetFlight}} <br>
+                departureDate: {{departureDate}} -->
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Edit flight modal -->
+      <div class="modal fade" id="editFlightModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">Edit Flight</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <form #editForm="ngForm" (ngSubmit)="onUpdateFlight(editForm.value)">
+                <div class="p-3 mb-3">
+                  <div class="form-check form-check-inline eva">
+                    <input class="form-check-input" type="radio" name="airline" [(ngModel)]="airline" value="evaAir"
+                      id="evaAir" (click)="onAirlineChange(editFlight.departureAirport, $event, 'edit')" checked>
+                    <label class="form-check-label evaAir" for="evaAir">
+                      <img src="../assets/images/eva_air.png" alt="Eva Air">
+                    </label>
+                  </div>
+                  <div class="form-check form-check-inline star">
+                    <input class="form-check-input" type="radio" name="airline" [(ngModel)]="airline"
+                      value="starAlliance" id="starAlliance" (click)="onAirlineChange(editFlight.departureAirport, $event, 'edit')">
+                    <label class="form-check-label" for="starAlliance">
+                      <img src="../assets/images/star_alliance.png" alt="Star Alliance">
+                    </label>
+                  </div>
+                  <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="airline" [(ngModel)]="airline" value="all"
+                      id="all" (click)="onAirlineChange(editFlight.departureAirport, $event, 'edit')">
+                    <label class="form-check-label" for="all">
+                      All airlines
+                    </label>
+                  </div>
+                </div>
+                <mat-form-field class="example-full-width" appearance="fill">
+                  <mat-label>Choose a date</mat-label>
+                  <input id="editDate" matInput [matDatepicker]="editPicker" [min]="minDate" [max]="maxDate"
+                    [value]="editFlight.timeOfDeparture" name="editDepartureDate" [(ngModel)]="editDate"
+                    (dateChange)="getDepartureFlights(editFlight.departureAirport, 'edit')" required>
+                  <mat-hint>MM/DD/YYYY</mat-hint>
+                  <mat-datepicker-toggle matSuffix [for]="editPicker"></mat-datepicker-toggle>
+                  <mat-datepicker #editPicker></mat-datepicker>
+                </mat-form-field>
+                <mat-form-field appearance="fill">
+                  <mat-label *ngIf="!hasNoDepFlight">Choose a flight</mat-label>
+                  <mat-label *ngIf="hasNoDepFlight">No flights available</mat-label>
+                  <select matNativeControl class="edit" name="edit" [(ngModel)]="editIndex" (change)="enableSubmission()" required>
+                    <option class="optionSelected" [value]="-1" selected hidden>{{formatCallsign(editFlight.callsign)}}
+                    </option>
+                    <option *ngFor="let flightRaw of departureFlightsRaw; let i = index" [value]=i>
+                      {{formatCallsign(flightRaw["callsign"])}}</option>
+                  </select>
+                </mat-form-field>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary editClose" data-bs-dismiss="modal">Close</button>
+                  <button [disabled]="submissionDisabled" type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+                <!-- For troubleshooting purpose -->
+                <!-- editIndex: {{editIndex}} <br>
+                editDate: {{editDate}} <br>
+                addForm: {{addForm.valid}} <br>
+                submissionDisabled: {{submissionDisabled}} <br>
+                {{editFlight | json}}
+                {{editFlight.departureAirport}} -->
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Delete flight modal -->
+      <div class="modal fade" id="deleteFlightModal" tabindex="-1" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">Delete Flight</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p>Are you sure you want to delete flight {{deleteFlight.callsign}}？</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+              <button (click)="onDeleteFlight(deleteFlight.id)" type="button" class="btn btn-danger"
+                data-bs-dismiss="modal">Yes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
