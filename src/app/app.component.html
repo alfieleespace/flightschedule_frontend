@@ -1,4 +1,4 @@
-<div>
+<div class="d-flex flex-column min-vh-100">
   <nav class="navbar navbar-expand-lg bg-light">
     <div class="container-fluid">
       <a class="navbar-brand" href="#">Flight Schedule</a>
@@ -98,7 +98,7 @@
             </div>
             <div class="modal-body">
               <form class="p-3" #addForm="ngForm" (ngSubmit)="onAddFlight(addForm)">
-                <div>
+                <div class="border-bottom py-3">
                   <div class="form-check form-check-inline">
                     <input class="form-check-input" type="radio" name="travelType" [(ngModel)]="travelType"
                       value="roundtrip" id="roundtrip" (click)="onTravelTypeChange($event)" checked>
@@ -114,7 +114,7 @@
                     </label>
                   </div>
                 </div>
-                <div class="mb-3">
+                <div class="mb-3 border-bottom py-3">
                   <div class="form-check form-check-inline eva">
                     <input class="form-check-input" type="radio" name="airline" [(ngModel)]="airline" value="evaAir"
                       id="evaAir" (click)="onAirlineChange('RCTP', $event, 'add')" checked>
@@ -140,7 +140,7 @@
                 <!-- addForm will be the reference of the whole form -->
                 <div class="row">
                   <div class="col-md-6">
-                    <label for="departureDate" class="form-label">Depart</label><br>
+                    <label for="departureDate" class="form-label">Depart from Taipei</label><br>
                     <mat-form-field class="example-full-width" appearance="fill">
                       <mat-label>Choose a date</mat-label>
                       <input id="departureDate" matInput [matDatepicker]="picker" [min]="minDate" [max]="maxDate"
@@ -162,7 +162,7 @@
                   </div>
                   <!-- Return flight -->
                   <div class="col-md-6">
-                    <label for="returnDate" class="form-label returnLabel">Return</label><br>
+                    <label for="returnDate" class="form-label returnLabel">Return to Taipei</label><br>
                     <mat-form-field class="example-full-width" appearance="fill">
                       <mat-label>Choose a date</mat-label>
                       <input id="returnDate" class="returnDate" matInput [matDatepicker]="rPicker" [min]="departureDate"
@@ -296,4 +296,9 @@
       </div>
     </div>
   </div>
+  <footer class="text-muted">
+    <div class="container text-center">
+        &copy; 2023 - Hung-Meng Lee
+    </div>
+</footer>
 </div>

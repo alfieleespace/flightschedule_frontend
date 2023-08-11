@@ -11,6 +11,13 @@ body {
     font-family: Roboto, "Helvetica Neue", sans-serif;
 }
 
+footer {
+    border-top: 1px solid #e5e5e5;
+    margin-top: auto;
+    white-space: nowrap;
+    line-height: 60px;
+}
+
 .cdk-overlay-container {
     z-index: 1200;
 }
@@ -55,3 +62,8 @@ body {
 .nav-link {
     cursor: pointer;
 }
+
+.modal-header, .modal-footer {
+    border: none;
+}
+

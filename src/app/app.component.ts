@@ -21,7 +21,7 @@ export class AppComponent implements OnInit {
   departureDate: Date = new Date();
   returnDate: Date = new Date(new Date().setDate(new Date().getDate() + 7));
   editDate: Date = new Date();
-  // Variable flights stores data comes from my backend 
+  // Variable flights stores data that comes from my backend 
   flights: Array<Flight> = [];
   editFlight: Flight = new Flight();
   deleteFlight: Flight = new Flight();
@@ -49,10 +49,11 @@ export class AppComponent implements OnInit {
 
   // Function getFlights is going to run whenever this component is initialized
   ngOnInit(): void {
-    let minArr: Array<string> = new Date().toLocaleString().split(/\D/);
-    this.minDate = `${minArr[2]}-${minArr[0]}-${minArr[1]}`;
+    // let minArr: Array<string> = new Date().toLocaleString().split(/\D/);
+    // this.minDate = `${minArr[2]}-${minArr[0]}-${minArr[1]}`;
     let maxArr: Array<string> = new Date(new Date().setMonth(new Date().getMonth() + 2)).toLocaleString().split(/\D/);
     this.maxDate = `${maxArr[2]}-${maxArr[0]}-${maxArr[1]}`;
+    this.minDate = new Date().toLocaleString();
     this.getFlights();
   }
 
@@ -72,13 +73,12 @@ export class AppComponent implements OnInit {
     )
   }
 
-  // Using Fetch to get Data from a public API called The OpenSky Network
+  // Use Fetch to get Data from a public API called The OpenSky Network
   // json() takes the Response object and parses the body part's text as JSON https://developer.mozilla.org/en-US/docs/Web/API/Response/json
   public getDepartureFlights(airportIcao: string, mode: string) {
     this.departIndex = '-1';
     this.editIndex = '-1';
     this.submissionDisabled = true;
-    // console.log('getDepartureFlights()');
     let date = new Date();
     let departureDate: Date = new Date();
 
@@ -127,7 +127,6 @@ export class AppComponent implements OnInit {
     this.returnIndex = '-1';
     if (!this.isOneWay) {
       let returnDate = new Date(this.returnDate);
-      // console.log(returnDate);
       let date = new Date();
       let day = returnDate.getDay()
       date.setDate(date.getDate() - (6 - day) - date.getDay() - 1);
@@ -168,6 +167,7 @@ export class AppComponent implements OnInit {
             }
           })
       // whenever a property in a component changes, the view is rendered to reflect the change
+      this.submissionDisabled = true;
       this.returnDisabled = false;
     } else {
       this.submissionDisabled = false;
@@ -188,7 +188,6 @@ export class AppComponent implements OnInit {
       this.getDepartureFlights(this.editFlight.departureAirport, mode);
       this.editDate = new Date(this.editFlight.timeOfDeparture);
       (document.querySelector('.optionSelected') as HTMLOptionElement).textContent = this.formatCallsign(this.editFlight.callsign);
-      // console.log(flight);
       if (this.editFlight.callsign.indexOf('EVA') === -1) {
         let starAlliance: Array<string> = Object.values(StarAlliance);
           for (let icao of starAlliance) {
@@ -211,12 +210,9 @@ export class AppComponent implements OnInit {
   // Value on the form will be JSON representation of every single one of those inputs 
   public onAddFlight(addForm: NgForm): void {
     let departureDate = new Date(this.departureDate);
+    departureDate.setHours(0,0,0,0);
     let selectedDepart: FlightRaw = this.departureFlightsRaw[Number(this.departIndex)];
-    console.log("selectedDepart:");
-    console.log(selectedDepart);
     let departDiff = Math.ceil((departureDate.getTime() / 1000 - selectedDepart.firstSeen) / 86400);
-    departDiff = departDiff > 29 ? departDiff : 28;
-    console.log(departDiff);
     let lastSeen = new Date((selectedDepart.lastSeen + 86400 * departDiff) * 1000);
     let firstSeen = new Date((selectedDepart.firstSeen + 86400 * departDiff) * 1000);
     lastSeen.setDate(lastSeen.getDate());
@@ -230,6 +226,7 @@ export class AppComponent implements OnInit {
 
     if (!this.isOneWay) {
       let returnDate = new Date(this.returnDate);
+      returnDate.setHours(0,0,0,0);
       let returnSelected: FlightRaw = this.returnFlightsRaw[Number(this.returnIndex)];
       let returnDiff = Math.ceil((returnDate.getTime() / 1000 - returnSelected.firstSeen) / 86400);
       let returnLastSeen = new Date((returnSelected.lastSeen + 86400 * returnDiff) * 1000);
@@ -262,7 +259,6 @@ export class AppComponent implements OnInit {
     } else {
       this.flightService.addFlight(depart).subscribe(
         (response: Flight) => {
-          // console.log(response);
           this.getFlights();
         },
         (error: HttpErrorResponse) => {
@@ -275,6 +271,7 @@ export class AppComponent implements OnInit {
 
   public onUpdateFlight(flight: any): void {
     let editDate = new Date(this.editDate);
+    editDate.setHours(0,0,0,0);
     let selected: FlightRaw = this.departureFlightsRaw[Number(this.editIndex)];
     let diff = Math.ceil((editDate.getTime() / 1000 - selected.firstSeen) / 86400);
     let lastSeen = new Date((selected.lastSeen + 86400 * diff) * 1000);
@@ -285,7 +282,6 @@ export class AppComponent implements OnInit {
 
     this.flightService.updateFlight(edit).subscribe(
       (response: Flight) => {
-        // console.log(response);
         this.getFlights();
       },
       (error: HttpErrorResponse) => {
@@ -311,7 +307,9 @@ export class AppComponent implements OnInit {
     for (let flight of this.flights) {
       if (flight.arrivalAirport.toLowerCase().indexOf(key.toLowerCase()) !== -1 ||
         flight.callsign.toLowerCase().indexOf(key.toLowerCase()) !== -1 ||
-        flight.departureAirport.toLowerCase().indexOf(key.toLowerCase()) !== -1
+        flight.departureAirport.toLowerCase().indexOf(key.toLowerCase()) !== -1 ||
+        (this.getAirportInfoByIcao(flight.departureAirport)["city"]).toLowerCase().indexOf(key.toLowerCase()) !== -1 ||
+        (this.getAirportInfoByIcao(flight.arrivalAirport)["city"]).toLowerCase().indexOf(key.toLowerCase()) !== -1
       ) {
         result.push(flight);
       }
@@ -427,6 +425,7 @@ export class AppComponent implements OnInit {
   }
 
   public formatTime(date: Date): string {
+    // return new Date(date).toLocaleTimeString(undefined, { timeZone: "UTC", timeZoneName: 'short' });
     return new Date(date).toLocaleTimeString(undefined, { timeZoneName: 'short' });
   }
 
